@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Collaudi</string>
+    <string name="title_activity_dbshower">DB Shower</string>
+    <string name="lbl_mechanics_test_passed">Test Meccanica Passato</string>
+    <string name="lbl_tires_test_passed">Test Pneumatici Passato</string>
+    <string name="lbl_body_test_passed">Test Carrozzeria Passato</string>
+    <string name="lbl_is_insured">Assicurato?</string>
+
+</resources>

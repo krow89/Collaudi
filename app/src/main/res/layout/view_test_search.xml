@@ -1,0 +1,102 @@
+<android.support.constraint.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" android:id="@+id/frameLayout" android:layout_marginLeft="8dp">
+    <EditText
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" android:id="@+id/licensePlate" android:layout_marginTop="8dp"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginLeft="8dp" android:layout_marginStart="8dp" app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="8dp" android:layout_marginRight="8dp" android:hint="Targa..."/>
+    <com.rm.rmswitch.RMTristateSwitch
+            android:layout_height="wrap_content"
+            android:layout_width="80dp"
+            android:id="@+id/mechanicsTestState"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginLeft="8dp" app:layout_constraintTop_toBottomOf="@+id/licensePlate"/>
+    <TextView
+            android:text="@string/lbl_mechanics_test_passed"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblMechanicsTest" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp" app:layout_constraintStart_toEndOf="@+id/tiresTestState"
+            android:layout_marginLeft="8dp" android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/mechanicsTestState"
+            app:layout_constraintTop_toTopOf="@+id/mechanicsTestState"/>
+
+    <com.rm.rmswitch.RMTristateSwitch
+            android:layout_height="wrap_content"
+            android:layout_width="80dp"
+            android:id="@+id/tiresTestState"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/mechanicsTestState" android:layout_marginTop="8dp"
+            android:layout_marginLeft="8dp"/>
+    <TextView
+            android:text="@string/lbl_tires_test_passed"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblPneumaticsTest" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp" app:layout_constraintStart_toEndOf="@+id/tiresTestState"
+            android:layout_marginLeft="8dp" android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/tiresTestState"
+            app:layout_constraintTop_toTopOf="@+id/tiresTestState"/>
+
+    <com.rm.rmswitch.RMTristateSwitch
+            android:layout_height="wrap_content"
+            android:layout_width="80dp"
+            app:layout_constraintStart_toStartOf="parent"
+            android:id="@+id/bodyTestState" app:layout_constraintTop_toBottomOf="@+id/tiresTestState"
+            android:layout_marginTop="5dp" android:layout_marginLeft="8dp"/>
+    <TextView
+            android:text="@string/lbl_body_test_passed"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/lblBodyTest" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp" app:layout_constraintStart_toEndOf="@+id/tiresTestState"
+            android:layout_marginLeft="8dp" android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/bodyTestState"
+            app:layout_constraintTop_toTopOf="@+id/bodyTestState"/>
+
+    <com.rm.rmswitch.RMTristateSwitch
+            android:layout_height="wrap_content"
+            android:layout_width="80dp"
+            app:layout_constraintStart_toStartOf="parent"
+            android:id="@+id/insuranceTestState" app:layout_constraintTop_toBottomOf="@+id/bodyTestState"
+            android:layout_marginTop="5dp" android:layout_marginLeft="8dp"/>
+    <TextView
+            android:text="@string/lbl_is_insured"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/lbl_insuranceTest" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp" app:layout_constraintStart_toEndOf="@+id/insuranceTestState"
+            android:layout_marginLeft="8dp" android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/insuranceTestState"
+            app:layout_constraintTop_toTopOf="@+id/insuranceTestState"/>
+
+
+    <Spinner
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/dbChoicer" app:layout_constraintStart_toEndOf="@+id/textView4"
+            android:layout_marginLeft="8dp" android:layout_marginStart="8dp" android:focusable="true"
+            app:layout_constraintRight_toRightOf="parent" app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@+id/insuranceTestState"
+            app:layout_constraintBottom_toBottomOf="@+id/textView4"/>
+    <TextView
+            android:text="Database"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView4" app:layout_constraintWidth_max="wrap"
+            app:layout_constraintWidth_min="wrap" app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginLeft="8dp" android:layout_marginStart="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/insuranceTestState" android:layout_marginTop="5dp"/>
+    <android.support.design.widget.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true" app:srcCompat="@android:drawable/ic_menu_search"
+            android:id="@+id/doSearch" app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+
+</android.support.constraint.ConstraintLayout>
