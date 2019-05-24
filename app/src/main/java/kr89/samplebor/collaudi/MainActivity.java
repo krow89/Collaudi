@@ -1,5 +1,7 @@
 package kr89.samplebor.collaudi;
 
+import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.PagerAdapter;
@@ -10,22 +12,34 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import kr89.samplebor.collaudi.views.TestSearchView;
+import org.json.JSONObject;
 
 class CustomPagerAdapter extends PagerAdapter{
     public CustomPagerAdapter(){
+
     }
 
     @NonNull
     @Override
     public Object instantiateItem(@NonNull final ViewGroup container, int position) {
         View childView= null;
+        final Context ctx= container.getContext();
         if(position == 0){
             TestSearchView tsv= new TestSearchView(container.getContext());
             tsv.setOnActionListener(new TestSearchView.OnActionListener() {
                 @Override
                 public void onAction(TestSearchView.Data data) {
-                    Toast.makeText(container.getContext(), data.licensePlate, Toast.LENGTH_LONG).show();
+                    Bundle b= new Bundle();
+                    b.putString(DBShowerActivity.KEY_URL_EXTRA_NAME, "https://blackkrow.altervista.og/get_data.php");
+                    Intent intent= new Intent(ctx, DBShowerActivity.class);
+                    intent.putExtras(b);
+                    ctx.startActivity(intent);
                 }
             });
             childView= tsv;
@@ -59,8 +73,11 @@ class CustomPagerAdapter extends PagerAdapter{
     }
 }
 
+
+
 public class MainActivity extends AppCompatActivity {
     private ViewPager   mViewPager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
