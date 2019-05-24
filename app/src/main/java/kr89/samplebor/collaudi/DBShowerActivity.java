@@ -8,7 +8,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.android.volley.Request;
@@ -20,7 +19,6 @@ import com.evrencoskun.tableview.TableView;
 import com.evrencoskun.tableview.adapter.AbstractTableAdapter;
 import com.evrencoskun.tableview.adapter.recyclerview.holder.AbstractViewHolder;
 import github.hotstu.sasuke.SasukeAdapter;
-import github.hotstu.sasuke.SasukeView;
 import kr89.samplebor.collaudi.models.TestRecord;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,9 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-class StringModel{
-    public String value;
-}
 
 class CellViewHolder extends AbstractViewHolder{
     public TextView textView;
@@ -42,9 +37,9 @@ class CellViewHolder extends AbstractViewHolder{
     }
 }
 
-class Table2Adapter extends AbstractTableAdapter<String, String, String>{
+class TestRecordTableAdapter extends AbstractTableAdapter<String, String, String>{
     private List<TestRecord> records;
-    public Table2Adapter(Context context) {
+    public TestRecordTableAdapter(Context context) {
         super(context);
         records= new ArrayList<>();
     }
@@ -119,7 +114,7 @@ class Table2Adapter extends AbstractTableAdapter<String, String, String>{
 
     @Override
     public View onCreateCornerView() {
-        return new ImageView(this.mContext);
+        return null; //new ImageView(this.mContext);
     }
 }
 
@@ -191,18 +186,18 @@ public class DBShowerActivity extends AppCompatActivity {
     final public static String KEY_URL_EXTRA_NAME= "DB_URL";
 
 
-    private TableView   mTable2;
-    private Table2Adapter mTable2Adapter;
+    private TableView mRecordsView;
+    private TestRecordTableAdapter mTable2Adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dbshower);
-        mTable2= findViewById(R.id.table);
-        mTable2Adapter= new Table2Adapter(this);
+        mRecordsView = findViewById(R.id.table);
+        mTable2Adapter= new TestRecordTableAdapter(this);
 
 
-        mTable2.setAdapter(mTable2Adapter );
+        mRecordsView.setAdapter(mTable2Adapter );
 
         Intent intent= this.getIntent();
         final Context ctx= this;

@@ -9,6 +9,7 @@
     <com.evrencoskun.tableview.TableView
             android:layout_height="0dp" android:layout_width="match_parent" android:id="@+id/table"
             app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent" app:layout_constraintRight_toRightOf="parent"/>
+            app:layout_constraintLeft_toLeftOf="parent" app:layout_constraintRight_toRightOf="parent"
+            android:background="@color/table_view_default_selected_background_color"/>
 
 </android.support.constraint.ConstraintLayout>
