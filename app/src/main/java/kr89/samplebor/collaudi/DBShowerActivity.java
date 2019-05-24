@@ -5,7 +5,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.android.volley.Request;
@@ -13,26 +16,114 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.evrencoskun.tableview.TableView;
+import com.evrencoskun.tableview.adapter.AbstractTableAdapter;
+import com.evrencoskun.tableview.adapter.recyclerview.holder.AbstractViewHolder;
 import github.hotstu.sasuke.SasukeAdapter;
 import github.hotstu.sasuke.SasukeView;
+import kr89.samplebor.collaudi.models.TestRecord;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+class StringModel{
+    public String value;
+}
+
+class CellViewHolder extends AbstractViewHolder{
+    public TextView textView;
+    public CellViewHolder(View itemView) {
+        super(itemView);
+        textView= itemView.findViewById(R.id.textView);
+    }
+}
+
+class Table2Adapter extends AbstractTableAdapter<String, String, String>{
+    private List<TestRecord> records;
+    public Table2Adapter(Context context) {
+        super(context);
+        records= new ArrayList<>();
+    }
+
+    public void setRecords(List<TestRecord> rec){
+        records.clear();
+        records.addAll(rec);
+        List<List<String>> ll= new ArrayList< List<String>>();
+        for(TestRecord currRecord : rec){
+            List<String> cells= new ArrayList<>(5);
+            cells.add(currRecord.licensePlate);
+            cells.add(currRecord.bodyTestPassed ? "OK":"No");
+            cells.add(currRecord.mechanicsTestPassed ? "OK":"No");
+            cells.add(currRecord.tiresTestPassed ? "OK":"No");
+            cells.add(currRecord.isInsured ? "OK":"No");
+            ll.add(cells);
+        }
+        List<String> rowHeaderModel= Arrays.asList("Row1", "Row2", "Row3" );
+        List<String> colHeaderModel= Arrays.asList("Targa", "Test Meccanico", "Test Carrozzeria", "Test Pneumatici", "Assicurato ?" );
+        setAllItems(colHeaderModel, null, ll);
+    }
+
+    @Override
+    public int getColumnHeaderItemViewType(int position) {
+        return 0;
+    }
+
+    @Override
+    public int getRowHeaderItemViewType(int position) {
+        return 0;
+    }
+
+    @Override
+    public int getCellItemViewType(int position) {
+        return 0;
+    }
+
+    @Override
+    public AbstractViewHolder onCreateCellViewHolder(ViewGroup parent, int viewType) {
+        View v= LayoutInflater.from(parent.getContext()).inflate(R.layout.item_db_record_data, null);
+        return new CellViewHolder(v);
+    }
+
+    @Override
+    public void onBindCellViewHolder(AbstractViewHolder holder, Object cellItemModel, int columnPosition, int rowPosition) {
+        ((CellViewHolder)holder).textView.setText((String) cellItemModel);
+    }
+
+    @Override
+    public AbstractViewHolder onCreateColumnHeaderViewHolder(ViewGroup parent, int viewType) {
+        View v= LayoutInflater.from(parent.getContext()).inflate(R.layout.item_db_record_data, null);
+        return new CellViewHolder(v);
+    }
+
+    @Override
+    public void onBindColumnHeaderViewHolder(AbstractViewHolder holder, Object columnHeaderItemModel, int columnPosition) {
+        CellViewHolder cellViewHolder= (CellViewHolder) holder;
+        cellViewHolder.textView.setText((String)columnHeaderItemModel);
+    }
+
+    @Override
+    public AbstractViewHolder onCreateRowHeaderViewHolder(ViewGroup parent, int viewType) {
+        View v= LayoutInflater.from(parent.getContext()).inflate(R.layout.item_db_record_data, null);
+        return new CellViewHolder(v);
+    }
+
+    @Override
+    public void onBindRowHeaderViewHolder(AbstractViewHolder holder, Object rowHeaderItemModel, int rowPosition) {
+        CellViewHolder cellViewHolder= (CellViewHolder) holder;
+        cellViewHolder.textView.setText((String) rowHeaderItemModel);
+    }
+
+    @Override
+    public View onCreateCornerView() {
+        return new ImageView(this.mContext);
+    }
+}
 
 public class DBShowerActivity extends AppCompatActivity {
-
-    class TestRecord {
-        public String licensePlate;
-        public boolean mechanicsTestPassed;
-        public boolean tiresTestPassed;
-        public boolean bodyTestPassed;
-        public boolean isInsured;
-
-    }
 
     class RecordsAdapter extends SasukeAdapter{
         private List<TestRecord> mRecords;
@@ -101,6 +192,8 @@ public class DBShowerActivity extends AppCompatActivity {
 
 
     private SasukeView mRecordView;
+    private TableView   mTable2;
+    private Table2Adapter mTable2Adapter;
     private RecordsAdapter  mRecordsAdapter;
 
     @Override
@@ -108,10 +201,15 @@ public class DBShowerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dbshower);
         mRecordView= findViewById(R.id.table);
+        mTable2= findViewById(R.id.table);
+        mTable2Adapter= new Table2Adapter(this);
+
         mRecordView.setStickColumnHead(true);
         mRecordView.setStickRowHead(true);
         mRecordsAdapter= new RecordsAdapter();
         mRecordView.setAdapter(mRecordsAdapter);
+
+        mTable2.setAdapter(mTable2Adapter );
 
         Intent intent= this.getIntent();
         final Context ctx= this;
@@ -132,17 +230,18 @@ public class DBShowerActivity extends AppCompatActivity {
                                     TestRecord curr= new TestRecord();
                                     JSONObject obj= (JSONObject) dataJson.get(i);
                                     curr.licensePlate= obj.getString("licensePlate");
-                                    curr.isInsured= obj.getString("insurance").equals("1") ? true : false;
-                                    curr.mechanicsTestPassed= obj.getString("mechanicsTestResult").equals("1") ? true : false;
-                                    curr.tiresTestPassed= obj.getString("tiresTestResult").equals("1") ? true : false;
-                                    curr.bodyTestPassed= obj.getString("mechanicsTestResult").equals("1") ? true : false;
+                                    curr.isInsured= obj.getString("insurance").equals("1");
+                                    curr.mechanicsTestPassed= obj.getString("mechanicsTestResult").equals("1");
+                                    curr.tiresTestPassed= obj.getString("tiresTestResult").equals("1");
+                                    curr.bodyTestPassed= obj.getString("mechanicsTestResult").equals("1");
                                     records.add(curr);
                                 }
                                 mRecordsAdapter.setRecords(records);
+                                mTable2Adapter.setRecords(records);
                                 mRecordView.setAdapter(mRecordsAdapter);
                             } catch (JSONException e) {
                                 e.printStackTrace();
-                                Toast.makeText(ctx, "Errore: Risposta invalida dal servizio web", Toast.LENGTH_LONG);
+                                Toast.makeText(ctx, "Errore: Risposta invalida dal servizio web", Toast.LENGTH_LONG).show();
                             }
                         }
                     }
