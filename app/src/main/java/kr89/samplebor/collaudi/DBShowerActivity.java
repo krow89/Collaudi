@@ -57,8 +57,7 @@ class TestRecordTableAdapter extends AbstractTableAdapter<String, String, String
             cells.add(currRecord.isInsured ? "OK":"No");
             ll.add(cells);
         }
-        List<String> rowHeaderModel= Arrays.asList("Row1", "Row2", "Row3" );
-        List<String> colHeaderModel= Arrays.asList("Targa", "Test Meccanico", "Test Carrozzeria", "Test Pneumatici", "Assicurato ?" );
+        List<String> colHeaderModel= Arrays.asList("Targa", "Test Meccanica", "Test Carrozzeria", "Test Pneumatici", "Assicurato ?" );
         setAllItems(colHeaderModel, null, ll);
     }
 
@@ -187,17 +186,17 @@ public class DBShowerActivity extends AppCompatActivity {
 
 
     private TableView mRecordsView;
-    private TestRecordTableAdapter mTable2Adapter;
+    private TestRecordTableAdapter mRecordTableAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dbshower);
         mRecordsView = findViewById(R.id.table);
-        mTable2Adapter= new TestRecordTableAdapter(this);
+        mRecordTableAdapter = new TestRecordTableAdapter(this);
+        mRecordsView.setIgnoreSelectionColors(true);
 
-
-        mRecordsView.setAdapter(mTable2Adapter );
+        mRecordsView.setAdapter(mRecordTableAdapter);
 
         Intent intent= this.getIntent();
         final Context ctx= this;
@@ -224,7 +223,7 @@ public class DBShowerActivity extends AppCompatActivity {
                                     curr.bodyTestPassed= obj.getString("mechanicsTestResult").equals("1");
                                     records.add(curr);
                                 }
-                                mTable2Adapter.setRecords(records);
+                                mRecordTableAdapter.setRecords(records);
                             } catch (JSONException e) {
                                 e.printStackTrace();
                                 Toast.makeText(ctx, "Errore: Risposta invalida dal servizio web", Toast.LENGTH_LONG).show();
