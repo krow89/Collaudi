@@ -6,24 +6,24 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import com.rm.rmswitch.RMAbstractSwitch;
 import com.rm.rmswitch.RMTristateSwitch;
 import kr89.samplebor.collaudi.R;
+import kr89.samplebor.collaudi.models.TestRecord;
+import kr89.samplebor.collaudi.models.TestRecordFilter;
 
 
 public class TestSearchView extends FrameLayout {
-    public static class Data{
-        public String licensePlate;
-    }
 
     public interface OnActionListener{
-        void onAction(Data data);
+        void onAction(TestRecordFilter searchFilter);
     }
 
-    private EditText            mUILicensePlateFilter;
-    private RMTristateSwitch    mUITiresFilter;
-    private RMTristateSwitch    mUIMechanicsFilter;
-    private RMTristateSwitch    mUIBodyFilter;
-    private FloatingActionButton   mUIDoSearch;
+    private EditText                mUILicensePlateFilter;
+    private RMTristateSwitch        mUITiresFilter;
+    private RMTristateSwitch        mUIMechanicsFilter;
+    private RMTristateSwitch        mUIBodyFilter;
+    private FloatingActionButton    mUIDoSearch;
 
     private OnActionListener    mActionListener;
 
@@ -49,11 +49,13 @@ public class TestSearchView extends FrameLayout {
         mUIDoSearch.setOnClickListener(mOnClickListenerForAction);
     }
 
-    public Data getData(){
-        Data data= new Data();
+    public TestRecordFilter getData(){
+        TestRecordFilter data= new TestRecordFilter();
         data.licensePlate= mUILicensePlateFilter.getText().toString();
+        data.bodyTest= mUIBodyFilter.getState()!= RMAbstractSwitch.STATE_LEFT ? (mUIBodyFilter.getState()== RMAbstractSwitch.STATE_MIDDLE ? TestRecordFilter.Filter.);
         return data;
     }
+
 
     public void setOnActionListener(OnActionListener listener){
         mActionListener= listener;
