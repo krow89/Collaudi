@@ -191,23 +191,16 @@ public class DBShowerActivity extends AppCompatActivity {
     final public static String KEY_URL_EXTRA_NAME= "DB_URL";
 
 
-    private SasukeView mRecordView;
     private TableView   mTable2;
     private Table2Adapter mTable2Adapter;
-    private RecordsAdapter  mRecordsAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dbshower);
-        mRecordView= findViewById(R.id.table);
         mTable2= findViewById(R.id.table);
         mTable2Adapter= new Table2Adapter(this);
 
-        mRecordView.setStickColumnHead(true);
-        mRecordView.setStickRowHead(true);
-        mRecordsAdapter= new RecordsAdapter();
-        mRecordView.setAdapter(mRecordsAdapter);
 
         mTable2.setAdapter(mTable2Adapter );
 
@@ -236,9 +229,7 @@ public class DBShowerActivity extends AppCompatActivity {
                                     curr.bodyTestPassed= obj.getString("mechanicsTestResult").equals("1");
                                     records.add(curr);
                                 }
-                                mRecordsAdapter.setRecords(records);
                                 mTable2Adapter.setRecords(records);
-                                mRecordView.setAdapter(mRecordsAdapter);
                             } catch (JSONException e) {
                                 e.printStackTrace();
                                 Toast.makeText(ctx, "Errore: Risposta invalida dal servizio web", Toast.LENGTH_LONG).show();
