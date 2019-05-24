@@ -36,7 +36,7 @@ class CustomPagerAdapter extends PagerAdapter{
                 @Override
                 public void onAction(TestSearchView.Data data) {
                     Bundle b= new Bundle();
-                    b.putString(DBShowerActivity.KEY_URL_EXTRA_NAME, "https://blackkrow.altervista.og/get_data.php");
+                    b.putString(DBShowerActivity.KEY_URL_EXTRA_NAME, "http://blackkrow.altervista.org/get_data.php");
                     Intent intent= new Intent(ctx, DBShowerActivity.class);
                     intent.putExtras(b);
                     ctx.startActivity(intent);

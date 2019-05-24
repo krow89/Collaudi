@@ -26,7 +26,7 @@ public class DBShowerActivity extends AppCompatActivity {
         if(intent != null){
             Bundle extraBundle= intent.getExtras();
             String url= extraBundle.getString(KEY_URL_EXTRA_NAME);
-            if(url == null){
+            if(url != null){
                 Volley.newRequestQueue(this).add(new JsonObjectRequest(Request.Method.POST, url, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
