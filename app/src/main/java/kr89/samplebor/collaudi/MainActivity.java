@@ -17,6 +17,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import kr89.samplebor.collaudi.models.TestRecordFilter;
 import kr89.samplebor.collaudi.views.TestSearchView;
 import org.json.JSONObject;
 
@@ -34,12 +35,8 @@ class CustomPagerAdapter extends PagerAdapter{
             TestSearchView tsv= new TestSearchView(container.getContext());
             tsv.setOnActionListener(new TestSearchView.OnActionListener() {
                 @Override
-                public void onAction(TestSearchView.Data data) {
-                    Bundle b= new Bundle();
-                    b.putString(DBShowerActivity.KEY_URL_EXTRA_NAME, "http://blackkrow.altervista.org/get_data.php");
-                    Intent intent= new Intent(ctx, DBShowerActivity.class);
-                    intent.putExtras(b);
-                    ctx.startActivity(intent);
+                public void onAction(TestRecordFilter data) {
+                    DBShowerActivity.startForFetchAndDisplay(ctx, data, "http://blackkrow.altervista.org/get_data.php");
                 }
             });
             childView= tsv;

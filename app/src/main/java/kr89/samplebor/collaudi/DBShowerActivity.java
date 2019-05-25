@@ -4,8 +4,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,8 +20,8 @@ import com.android.volley.toolbox.Volley;
 import com.evrencoskun.tableview.TableView;
 import com.evrencoskun.tableview.adapter.AbstractTableAdapter;
 import com.evrencoskun.tableview.adapter.recyclerview.holder.AbstractViewHolder;
-import github.hotstu.sasuke.SasukeAdapter;
 import kr89.samplebor.collaudi.models.TestRecord;
+import kr89.samplebor.collaudi.models.TestRecordFilter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,6 +30,50 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+class TestFilterParcelable extends TestRecordFilter implements Parcelable{
+
+    protected TestFilterParcelable(Parcel in) {
+        this.licensePlate= in.readString();
+        this.mechanicsTest= TestRecordFilter.Filter.valueOf(in.readString());
+        this.bodyTest= TestRecordFilter.Filter.valueOf(in.readString());
+        this.tiresTest= TestRecordFilter.Filter.valueOf(in.readString());
+        this.isInsured= TestRecordFilter.Filter.valueOf(in.readString());
+    }
+
+    protected TestFilterParcelable(TestRecordFilter obj){
+        this.licensePlate= obj.licensePlate;
+        this.mechanicsTest= obj.mechanicsTest;
+        this.bodyTest= obj.bodyTest;
+        this.tiresTest= obj.tiresTest;
+        this.isInsured= obj.isInsured;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.licensePlate);
+        dest.writeString(this.mechanicsTest.name());
+        dest.writeString(this.bodyTest.name());
+        dest.writeString(this.tiresTest.name());
+        dest.writeString(this.isInsured.name());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<TestFilterParcelable> CREATOR = new Creator<TestFilterParcelable>() {
+        @Override
+        public TestFilterParcelable createFromParcel(Parcel in) {
+            return new TestFilterParcelable(in);
+        }
+
+        @Override
+        public TestFilterParcelable[] newArray(int size) {
+            return new TestFilterParcelable[size];
+        }
+    };
+}
 
 class CellViewHolder extends AbstractViewHolder {
     public TextView textView;
@@ -138,6 +183,7 @@ public class DBShowerActivity extends AppCompatActivity {
 
 
     final public static String KEY_URL_EXTRA_NAME = "DB_URL";
+    final public static String KEY_FILTER_NAME = "FILTER";
 
 
     private TableView mRecordsView;
@@ -158,8 +204,27 @@ public class DBShowerActivity extends AppCompatActivity {
         if (intent != null) {
             Bundle extraBundle = intent.getExtras();
             String url = extraBundle.getString(KEY_URL_EXTRA_NAME);
+            TestFilterParcelable filter= extraBundle.getParcelable(KEY_FILTER_NAME);
+            JSONObject postParams= new JSONObject();
+            try {
+                postParams.put("licensePlate", filter.licensePlate);
+                if (filter.isInsured != TestRecordFilter.Filter.ANY) {
+                    postParams.put("insurance", filter.isInsured == TestRecordFilter.Filter.YES ? "yes" : "no");
+                }
+                if (filter.mechanicsTest != TestRecordFilter.Filter.ANY) {
+                    postParams.put("mechanics", filter.mechanicsTest == TestRecordFilter.Filter.YES ? "passed" : "failed");
+                }
+                if (filter.bodyTest != TestRecordFilter.Filter.ANY) {
+                    postParams.put("body", filter.bodyTest == TestRecordFilter.Filter.YES ? "passed" : "failed");
+                }
+                if (filter.tiresTest != TestRecordFilter.Filter.ANY) {
+                    postParams.put("tires", filter.tiresTest == TestRecordFilter.Filter.YES ? "passed" : "failed");
+                }
+            }catch (JSONException unhandled){
+                unhandled.printStackTrace();
+            }
             if (url != null) {
-                Volley.newRequestQueue(this).add(new JsonObjectRequest(Request.Method.POST, url, null, new Response.Listener<JSONObject>() {
+                Volley.newRequestQueue(this).add(new JsonObjectRequest(Request.Method.POST, url, postParams, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
 
@@ -195,7 +260,13 @@ public class DBShowerActivity extends AppCompatActivity {
         }
     }
 
-    public static void startForFetchAndDisplay(){
+    public static void startForFetchAndDisplay(Context ctx, TestRecordFilter filter, String dataSource){
         // TODO: add impl
+        Bundle b= new Bundle();
+        b.putString(DBShowerActivity.KEY_URL_EXTRA_NAME, dataSource);
+        Intent intent= new Intent(ctx, DBShowerActivity.class);
+        intent.putExtras(b);
+        intent.putExtra(KEY_FILTER_NAME, new TestFilterParcelable(filter));
+        ctx.startActivity(intent);
     }
 }

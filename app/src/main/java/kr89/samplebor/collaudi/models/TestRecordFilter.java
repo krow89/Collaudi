@@ -9,5 +9,4 @@ public class TestRecordFilter {
     public Filter bodyTest;
     public Filter tiresTest;
     public Filter isInsured;
-
 }
