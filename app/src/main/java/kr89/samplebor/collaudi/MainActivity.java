@@ -36,7 +36,9 @@ class CustomPagerAdapter extends PagerAdapter{
             tsv.setOnActionListener(new TestSearchView.OnActionListener() {
                 @Override
                 public void onAction(TestRecordFilter data) {
-                    DBShowerActivity.startForFetchAndDisplay(ctx, data, "http://blackkrow.altervista.org/get_data.php");
+                    String testUrl= "http://192.168.1.19/collaudi/get_data.php";
+                    String realUrl= "http://blackkrow.altervista.org/get_data.php";
+                    DBShowerActivity.startForFetchAndDisplay(ctx, data, realUrl);
                 }
             });
             childView= tsv;

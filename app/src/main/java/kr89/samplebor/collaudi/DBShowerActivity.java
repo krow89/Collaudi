@@ -6,16 +6,19 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.evrencoskun.tableview.TableView;
 import com.evrencoskun.tableview.adapter.AbstractTableAdapter;
@@ -26,9 +29,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 class TestFilterParcelable extends TestRecordFilter implements Parcelable{
 
@@ -175,9 +176,36 @@ class TestRecordTableAdapter extends ColumnOnlyTableAdapter<String, String, Stri
         CellViewHolder cellViewHolder = (CellViewHolder) holder;
         cellViewHolder.textView.setText((String) columnHeaderItemModel);
     }
-
-
 }
+
+class CustomRequest extends StringRequest{
+    private TestRecordFilter    mFilter;
+    public CustomRequest(String url, TestRecordFilter filter, Response.Listener<String> listener, @Nullable Response.ErrorListener errorListener) {
+        super(Method.POST, url, listener, errorListener);
+        mFilter= filter;
+    }
+
+    @Override
+    protected Map<String, String> getParams() throws AuthFailureError {
+        Map<String, String> params= new HashMap<>();
+        TestRecordFilter filter= mFilter;
+        params.put("licensePlate", filter.licensePlate);
+        if (filter.isInsured != TestRecordFilter.Filter.ANY) {
+            params.put("insurance", filter.isInsured == TestRecordFilter.Filter.YES ? "yes" : "no");
+        }
+        if (filter.mechanicsTest != TestRecordFilter.Filter.ANY) {
+            params.put("mechanics", filter.mechanicsTest == TestRecordFilter.Filter.YES ? "passed" : "failed");
+        }
+        if (filter.bodyTest != TestRecordFilter.Filter.ANY) {
+            params.put("body", filter.bodyTest == TestRecordFilter.Filter.YES ? "passed" : "failed");
+        }
+        if (filter.tiresTest != TestRecordFilter.Filter.ANY) {
+            params.put("tires", filter.tiresTest == TestRecordFilter.Filter.YES ? "passed" : "failed");
+        }
+        return params;
+    }
+}
+
 
 public class DBShowerActivity extends AppCompatActivity {
 
@@ -224,11 +252,19 @@ public class DBShowerActivity extends AppCompatActivity {
                 unhandled.printStackTrace();
             }
             if (url != null) {
-                Volley.newRequestQueue(this).add(new JsonObjectRequest(Request.Method.POST, url, postParams, new Response.Listener<JSONObject>() {
+                Volley.newRequestQueue(this).add(new CustomRequest( url, filter, new Response.Listener<String>() {
                     @Override
-                    public void onResponse(JSONObject response) {
+                    public void onResponse(String data) {
 
                         TestRecord tmpRecord = new TestRecord();
+                        JSONObject response= null;
+                        try {
+                            response = new JSONObject(data);
+                        } catch (JSONException e) {
+                            // TODO: handle exception here
+                            e.printStackTrace();
+                            return;
+                        }
                         if (response.has("data")) {
                             try {
                                 JSONArray dataJson = response.getJSONArray("data");
@@ -250,6 +286,7 @@ public class DBShowerActivity extends AppCompatActivity {
                             }
                         }
                     }
+
                 }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
