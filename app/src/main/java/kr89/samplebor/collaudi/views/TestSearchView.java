@@ -9,7 +9,6 @@ import android.widget.FrameLayout;
 import com.rm.rmswitch.RMAbstractSwitch;
 import com.rm.rmswitch.RMTristateSwitch;
 import kr89.samplebor.collaudi.R;
-import kr89.samplebor.collaudi.models.TestRecord;
 import kr89.samplebor.collaudi.models.TestRecordFilter;
 
 
@@ -23,6 +22,7 @@ public class TestSearchView extends FrameLayout {
     private RMTristateSwitch        mUITiresFilter;
     private RMTristateSwitch        mUIMechanicsFilter;
     private RMTristateSwitch        mUIBodyFilter;
+    private RMTristateSwitch        mUIIsInsuranced;
     private FloatingActionButton    mUIDoSearch;
 
     private OnActionListener    mActionListener;
@@ -45,6 +45,7 @@ public class TestSearchView extends FrameLayout {
         mUIMechanicsFilter= findViewById(R.id.mechanicsTestState);
         mUIBodyFilter= findViewById(R.id.bodyTestState);
         mUIDoSearch= findViewById(R.id.doSearch);
+        mUIIsInsuranced= findViewById(R.id.insuranceTestState);
 
         mUIDoSearch.setOnClickListener(mOnClickListenerForAction);
     }
@@ -52,8 +53,20 @@ public class TestSearchView extends FrameLayout {
     public TestRecordFilter getData(){
         TestRecordFilter data= new TestRecordFilter();
         data.licensePlate= mUILicensePlateFilter.getText().toString();
-        data.bodyTest= mUIBodyFilter.getState()!= RMAbstractSwitch.STATE_LEFT ? (mUIBodyFilter.getState()== RMAbstractSwitch.STATE_MIDDLE ? TestRecordFilter.Filter.);
+        data.bodyTest= this._switchStateToFilter(mUIBodyFilter.getState());
+        data.mechanicsTest= this._switchStateToFilter(mUIMechanicsFilter.getState());
+        data.tiresTest= this._switchStateToFilter(mUITiresFilter.getState());
+        data.isInsured= this._switchStateToFilter(mUIIsInsuranced.getState());
         return data;
+    }
+
+    private TestRecordFilter.Filter _switchStateToFilter(int state){
+        switch (state){
+            case RMAbstractSwitch.STATE_LEFT: return TestRecordFilter.Filter.ANY;
+            case RMAbstractSwitch.STATE_MIDDLE: return TestRecordFilter.Filter.YES;
+            case RMAbstractSwitch.STATE_RIGHT: return TestRecordFilter.Filter.NO;
+        }
+        return null;
     }
 
 
