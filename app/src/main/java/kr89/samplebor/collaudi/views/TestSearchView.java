@@ -6,10 +6,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 import com.rm.rmswitch.RMAbstractSwitch;
 import com.rm.rmswitch.RMTristateSwitch;
 import kr89.samplebor.collaudi.R;
 import kr89.samplebor.collaudi.models.TestRecordFilter;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 
 
 public class TestSearchView extends FrameLayout {
@@ -24,14 +28,28 @@ public class TestSearchView extends FrameLayout {
     private RMTristateSwitch        mUIBodyFilter;
     private RMTristateSwitch        mUIIsInsuranced;
     private FloatingActionButton    mUIDoSearch;
+    private EditText                mUIDBUrl;
 
     private OnActionListener    mActionListener;
 
     private OnClickListener mOnClickListenerForAction= new OnClickListener() {
         @Override
         public void onClick(View v) {
-            if(mActionListener != null)
-                mActionListener.onAction(getData());
+            if(mActionListener != null){
+                TestRecordFilter data= getData();
+                if(data.dbServiceUrl != null && !data.dbServiceUrl.isEmpty()){
+                    try {
+                        URL u= new URL(data.dbServiceUrl);
+                    } catch (MalformedURLException e) {
+                        Toast.makeText(v.getContext(), "URL database non valido", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                }else{
+                    Toast.makeText(v.getContext(), "URL database non valido", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                mActionListener.onAction(data);
+            }
         }
     };
 
@@ -46,6 +64,7 @@ public class TestSearchView extends FrameLayout {
         mUIBodyFilter= findViewById(R.id.bodyTestState);
         mUIDoSearch= findViewById(R.id.doSearch);
         mUIIsInsuranced= findViewById(R.id.insuranceTestState);
+        mUIDBUrl= findViewById(R.id.dbChoicer);
 
         mUIDoSearch.setOnClickListener(mOnClickListenerForAction);
     }
@@ -57,6 +76,7 @@ public class TestSearchView extends FrameLayout {
         data.mechanicsTest= this._switchStateToFilter(mUIMechanicsFilter.getState());
         data.tiresTest= this._switchStateToFilter(mUITiresFilter.getState());
         data.isInsured= this._switchStateToFilter(mUIIsInsuranced.getState());
+        data.dbServiceUrl= this.mUIDBUrl.getText().toString();
         return data;
     }
 

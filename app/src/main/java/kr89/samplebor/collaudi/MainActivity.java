@@ -1,29 +1,34 @@
 package kr89.samplebor.collaudi;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import kr89.samplebor.collaudi.models.TestRecordFilter;
 import kr89.samplebor.collaudi.views.TestSearchView;
-import org.json.JSONObject;
 
 class CustomPagerAdapter extends PagerAdapter{
-    public CustomPagerAdapter(){
+    private TestSearchView.OnActionListener mActionListener;
+    private TestSearchView mFirstChild;
+    private DBShowerView    mSecondChild;
 
+    public CustomPagerAdapter(TestSearchView.OnActionListener listener){
+        mActionListener= listener;
+    }
+
+    public TestSearchView getTestSearchView(){
+        return mFirstChild;
+    }
+
+    public DBShowerView getDBShowerView(){
+        return mSecondChild;
     }
 
     @NonNull
@@ -32,18 +37,12 @@ class CustomPagerAdapter extends PagerAdapter{
         View childView= null;
         final Context ctx= container.getContext();
         if(position == 0){
-            TestSearchView tsv= new TestSearchView(container.getContext());
-            tsv.setOnActionListener(new TestSearchView.OnActionListener() {
-                @Override
-                public void onAction(TestRecordFilter data) {
-                    String testUrl= "http://192.168.1.19/collaudi/get_data.php";
-                    String realUrl= "http://blackkrow.altervista.org/get_data.php";
-                    DBShowerActivity.startForFetchAndDisplay(ctx, data, realUrl);
-                }
-            });
-            childView= tsv;
+            mFirstChild= new TestSearchView(container.getContext());
+            mFirstChild.setOnActionListener(mActionListener);
+            childView= mFirstChild;
         }else{
-            childView= new Button(container.getContext());
+            mSecondChild= new DBShowerView(ctx);
+            childView= mSecondChild;
         }
         container.addView(childView);
         return childView;
@@ -77,11 +76,20 @@ class CustomPagerAdapter extends PagerAdapter{
 public class MainActivity extends AppCompatActivity {
     private ViewPager   mViewPager;
 
+    private CustomPagerAdapter mViewPagerAdapter= new CustomPagerAdapter(new TestSearchView.OnActionListener() {
+        @Override
+        public void onAction(TestRecordFilter searchFilter) {
+            mViewPager.setCurrentItem(1);
+            DBShowerView dbShower= mViewPagerAdapter.getDBShowerView();
+            dbShower.fetchAndDisplay(searchFilter);
+        }
+    });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mViewPager= findViewById(R.id.viewPager);
-        mViewPager.setAdapter(new CustomPagerAdapter());
+        mViewPager.setAdapter(mViewPagerAdapter);
     }
 }

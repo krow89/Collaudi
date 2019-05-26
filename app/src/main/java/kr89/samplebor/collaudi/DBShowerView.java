@@ -1,23 +1,25 @@
 package kr89.samplebor.collaudi;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
+import android.support.constraint.ConstraintLayout;
+import android.util.SparseArray;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.evrencoskun.tableview.TableView;
@@ -84,7 +86,7 @@ class CellViewHolder extends AbstractViewHolder {
         textView = itemView.findViewById(R.id.textView);
         textView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         if (isHeaderCell) {
-            textView.setTypeface(null, Typeface.BOLD);
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 23);
         }
     }
 }
@@ -128,7 +130,7 @@ abstract class ColumnOnlyTableAdapter<VC, VR, CM> extends AbstractTableAdapter<V
 
 
 class TestRecordTableAdapter extends ColumnOnlyTableAdapter<String, String, String> {
-    private static List<String> colHeaderModel= Arrays.asList("Targa", "Test Meccanica", "Test Carrozzeria", "Test Pneumatici", "Assicurato ?");
+    private static List<String> colHeaderModel= Arrays.asList("Targa", "Test Meccanica", "Test Carrozzeria", "Test Pneumatici", "Assicurato ?", "Esito finale");
 
 
     public TestRecordTableAdapter(Context context) {
@@ -138,12 +140,13 @@ class TestRecordTableAdapter extends ColumnOnlyTableAdapter<String, String, Stri
     public void setRecords(List<TestRecord> rec) {
         List<List<String>> ll = new ArrayList<List<String>>();
         for (TestRecord currRecord : rec) {
-            List<String> cells = new ArrayList<>(5);
+            List<String> cells = new ArrayList<>(6);
             cells.add(currRecord.licensePlate);
-            cells.add(currRecord.bodyTestPassed ? "OK" : "No");
-            cells.add(currRecord.mechanicsTestPassed ? "OK" : "No");
-            cells.add(currRecord.tiresTestPassed ? "OK" : "No");
-            cells.add(currRecord.isInsured ? "OK" : "No");
+            cells.add(currRecord.mechanicsTestPassed ? "OK" : "Non superato");
+            cells.add(currRecord.bodyTestPassed ? "OK" : "Non superato");
+            cells.add(currRecord.tiresTestPassed ? "OK" : "Non superato");
+            cells.add(currRecord.isInsured ? "SI" : "NO");
+            cells.add(currRecord.mechanicsTestPassed && currRecord.isInsured && currRecord.bodyTestPassed && currRecord.tiresTestPassed ? "OK":"Non superato");
             ll.add(cells);
         }
         setAllItems(colHeaderModel, null, ll);
@@ -162,7 +165,10 @@ class TestRecordTableAdapter extends ColumnOnlyTableAdapter<String, String, Stri
 
     @Override
     public void onBindCellViewHolder(AbstractViewHolder holder, Object cellItemModel, int columnPosition, int rowPosition) {
-        ((CellViewHolder) holder).textView.setText((String) cellItemModel);
+        CellViewHolder viewHolder= (CellViewHolder) holder;
+        viewHolder.textView.setText((String) cellItemModel);
+        if(columnPosition % 2 == 0)
+            viewHolder.textView.setTypeface(null, Typeface.BOLD_ITALIC);
     }
 
     @Override
@@ -175,6 +181,8 @@ class TestRecordTableAdapter extends ColumnOnlyTableAdapter<String, String, Stri
     public void onBindColumnHeaderViewHolder(AbstractViewHolder holder, Object columnHeaderItemModel, int columnPosition) {
         CellViewHolder cellViewHolder = (CellViewHolder) holder;
         cellViewHolder.textView.setText((String) columnHeaderItemModel);
+        if(columnPosition % 2 == 0)
+            cellViewHolder.textView.setTypeface(null, Typeface.BOLD_ITALIC);
     }
 }
 
@@ -207,103 +215,137 @@ class CustomRequest extends StringRequest{
 }
 
 
-public class DBShowerActivity extends AppCompatActivity {
-
-
-    final public static String KEY_URL_EXTRA_NAME = "DB_URL";
-    final public static String KEY_FILTER_NAME = "FILTER";
+public class DBShowerView extends FrameLayout {
 
 
     private TableView mRecordsView;
     private TestRecordTableAdapter mRecordTableAdapter;
+    private ConstraintLayout mMessageView;
+    private TextView    mMessage;
+    private Button      mCancelRequest;
+    private Request     mCurrRequest;
+    private TestFilterParcelable      mLastFilter;
+
+
+    private final String KEY_LAST_FILTER= "LAST_FILTER";
+
+    public DBShowerView(Context context) {
+        super(context);
+        LayoutInflater.from(context).inflate(R.layout.view_dbshower, this);
+        mMessageView= findViewById(R.id.containerLoading);
+        mMessage= mMessageView.findViewById(R.id.message);
+        mRecordsView = findViewById(R.id.table);
+        mRecordTableAdapter = new TestRecordTableAdapter(context);
+        mCancelRequest= findViewById(R.id.stopBtn);
+        mRecordsView.setIgnoreSelectionColors(true);
+        mRecordsView.setAdapter(mRecordTableAdapter);
+        mCancelRequest.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mCurrRequest != null)
+                    mCurrRequest.cancel();
+            }
+        });
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_dbshower);
-        mRecordsView = findViewById(R.id.table);
-        mRecordTableAdapter = new TestRecordTableAdapter(this);
-        mRecordsView.setIgnoreSelectionColors(true);
+    protected Parcelable onSaveInstanceState() {
+        super.onSaveInstanceState();
+        Bundle b= new Bundle();
+        b.putParcelable(KEY_LAST_FILTER, mLastFilter);
+        return b;
+    }
 
-        mRecordsView.setAdapter(mRecordTableAdapter);
-
-        Intent intent = this.getIntent();
-        final Context ctx = this;
-        if (intent != null) {
-            Bundle extraBundle = intent.getExtras();
-            String url = extraBundle.getString(KEY_URL_EXTRA_NAME);
-            TestFilterParcelable filter= extraBundle.getParcelable(KEY_FILTER_NAME);
-            JSONObject postParams= new JSONObject();
-            try {
-                postParams.put("licensePlate", filter.licensePlate);
-                if (filter.isInsured != TestRecordFilter.Filter.ANY) {
-                    postParams.put("insurance", filter.isInsured == TestRecordFilter.Filter.YES ? "yes" : "no");
-                }
-                if (filter.mechanicsTest != TestRecordFilter.Filter.ANY) {
-                    postParams.put("mechanics", filter.mechanicsTest == TestRecordFilter.Filter.YES ? "passed" : "failed");
-                }
-                if (filter.bodyTest != TestRecordFilter.Filter.ANY) {
-                    postParams.put("body", filter.bodyTest == TestRecordFilter.Filter.YES ? "passed" : "failed");
-                }
-                if (filter.tiresTest != TestRecordFilter.Filter.ANY) {
-                    postParams.put("tires", filter.tiresTest == TestRecordFilter.Filter.YES ? "passed" : "failed");
-                }
-            }catch (JSONException unhandled){
-                unhandled.printStackTrace();
-            }
-            if (url != null) {
-                Volley.newRequestQueue(this).add(new CustomRequest( url, filter, new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String data) {
-
-                        TestRecord tmpRecord = new TestRecord();
-                        JSONObject response= null;
-                        try {
-                            response = new JSONObject(data);
-                        } catch (JSONException e) {
-                            // TODO: handle exception here
-                            e.printStackTrace();
-                            return;
-                        }
-                        if (response.has("data")) {
-                            try {
-                                JSONArray dataJson = response.getJSONArray("data");
-                                ArrayList<TestRecord> records = new ArrayList<>();
-                                for (int i = 0; i < dataJson.length(); ++i) {
-                                    TestRecord curr = new TestRecord();
-                                    JSONObject obj = (JSONObject) dataJson.get(i);
-                                    curr.licensePlate = obj.getString("licensePlate");
-                                    curr.isInsured = obj.getString("insurance").equals("1");
-                                    curr.mechanicsTestPassed = obj.getString("mechanicsTestResult").equals("1");
-                                    curr.tiresTestPassed = obj.getString("tiresTestResult").equals("1");
-                                    curr.bodyTestPassed = obj.getString("mechanicsTestResult").equals("1");
-                                    records.add(curr);
-                                }
-                                mRecordTableAdapter.setRecords(records);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                                Toast.makeText(ctx, "Errore: Risposta invalida dal servizio web", Toast.LENGTH_LONG).show();
-                            }
-                        }
-                    }
-
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(ctx, "Errore nella connessione al servizio web", Toast.LENGTH_LONG).show();
-                    }
-                }));
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        super.onRestoreInstanceState(state);
+        if(state != null){
+            Bundle b= (Bundle) state;
+            TestFilterParcelable lastFilter= b.getParcelable(KEY_LAST_FILTER);
+            if(lastFilter != null){
+                fetchAndDisplay(lastFilter);
             }
         }
     }
 
-    public static void startForFetchAndDisplay(Context ctx, TestRecordFilter filter, String dataSource){
-        // TODO: add impl
-        Bundle b= new Bundle();
-        b.putString(DBShowerActivity.KEY_URL_EXTRA_NAME, dataSource);
-        Intent intent= new Intent(ctx, DBShowerActivity.class);
-        intent.putExtras(b);
-        intent.putExtra(KEY_FILTER_NAME, new TestFilterParcelable(filter));
-        ctx.startActivity(intent);
+    private void showLoadingView(String msg){
+        mMessage.setText(msg);
+        mRecordsView.setVisibility(GONE);
+        mMessageView.setVisibility(VISIBLE);
     }
+
+    private void showLoadingView(boolean visible){
+        mMessageView.setVisibility(visible ? VISIBLE : GONE);
+        mRecordsView.setVisibility(visible ? GONE : VISIBLE);
+    }
+
+
+
+    public void fetchAndDisplay( TestRecordFilter filter){
+        // TODO: add impl
+        JSONObject postParams= new JSONObject();
+        try {
+            postParams.put("licensePlate", filter.licensePlate);
+            if (filter.isInsured != TestRecordFilter.Filter.ANY) {
+                postParams.put("insurance", filter.isInsured == TestRecordFilter.Filter.YES ? "yes" : "no");
+            }
+            if (filter.mechanicsTest != TestRecordFilter.Filter.ANY) {
+                postParams.put("mechanics", filter.mechanicsTest == TestRecordFilter.Filter.YES ? "passed" : "failed");
+            }
+            if (filter.bodyTest != TestRecordFilter.Filter.ANY) {
+                postParams.put("body", filter.bodyTest == TestRecordFilter.Filter.YES ? "passed" : "failed");
+            }
+            if (filter.tiresTest != TestRecordFilter.Filter.ANY) {
+                postParams.put("tires", filter.tiresTest == TestRecordFilter.Filter.YES ? "passed" : "failed");
+            }
+        }catch (JSONException unhandled){
+            unhandled.printStackTrace();
+        }
+        final Context ctx= this.getContext();
+        mCurrRequest= Volley.newRequestQueue(this.getContext()).add(new CustomRequest( filter.dbServiceUrl, filter, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String data) {
+                showLoadingView(false);
+                TestRecord tmpRecord = new TestRecord();
+                JSONObject response= null;
+                try {
+                    response = new JSONObject(data);
+                } catch (JSONException e) {
+                    // TODO: handle exception here
+                    e.printStackTrace();
+                    return;
+                }
+                if (response.has("data")) {
+                    try {
+                        JSONArray dataJson = response.getJSONArray("data");
+                        ArrayList<TestRecord> records = new ArrayList<>();
+                        for (int i = 0; i < dataJson.length(); ++i) {
+                            TestRecord curr = new TestRecord();
+                            JSONObject obj = (JSONObject) dataJson.get(i);
+                            curr.licensePlate = obj.getString("licensePlate");
+                            curr.isInsured = obj.getString("insurance").equals("1");
+                            curr.mechanicsTestPassed = obj.getString("mechanicsTestResult").equals("1");
+                            curr.tiresTestPassed = obj.getString("tiresTestResult").equals("1");
+                            curr.bodyTestPassed = obj.getString("bodyTestResult").equals("1");
+                            records.add(curr);
+                        }
+                        mRecordTableAdapter.setRecords(records);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Toast.makeText(ctx, "Errore: Risposta invalida dal servizio web", Toast.LENGTH_LONG).show();
+                    }
+                }
+            }
+
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(ctx, "Errore nella connessione al servizio web", Toast.LENGTH_LONG).show();
+            }
+        }));
+        showLoadingView("Caricamento in corso");
+
+    }
+
+
 }
