@@ -250,7 +250,7 @@ public class DBShowerView extends FrameLayout {
 
     @Override
     protected Parcelable onSaveInstanceState() {
-        super.onSaveInstanceState();
+        Parcelable state= super.onSaveInstanceState();
         Bundle b= new Bundle();
         b.putParcelable(KEY_LAST_FILTER, mLastFilter);
         return b;
@@ -271,15 +271,22 @@ public class DBShowerView extends FrameLayout {
     private void showLoadingView(String msg){
         mMessage.setText(msg);
         mRecordsView.setVisibility(GONE);
+        mCancelRequest.setVisibility(VISIBLE);
         mMessageView.setVisibility(VISIBLE);
     }
 
     private void showLoadingView(boolean visible){
         mMessageView.setVisibility(visible ? VISIBLE : GONE);
+        mCancelRequest.setVisibility(VISIBLE);
         mRecordsView.setVisibility(visible ? GONE : VISIBLE);
     }
 
-
+    private void showMessage(String msg){
+        mMessage.setText(msg);
+        mRecordsView.setVisibility(GONE);
+        mMessageView.setVisibility(VISIBLE);
+        mCancelRequest.setVisibility(GONE);
+    }
 
     public void fetchAndDisplay( TestRecordFilter filter){
         // TODO: add impl
@@ -300,6 +307,7 @@ public class DBShowerView extends FrameLayout {
             }
         }catch (JSONException unhandled){
             unhandled.printStackTrace();
+            showMessage("Nessun dato da mostrare");
         }
         final Context ctx= this.getContext();
         mCurrRequest= Volley.newRequestQueue(this.getContext()).add(new CustomRequest( filter.dbServiceUrl, filter, new Response.Listener<String>() {
